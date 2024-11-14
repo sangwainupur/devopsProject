@@ -4,6 +4,8 @@ pipeline {
     environment {
         REGISTRY = 'deveshksh'                          // Docker Hub username
         REGISTRY_CREDENTIALS = 'docker-hub-credentials' // Docker Hub credentials ID in Jenkins
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Ensure correct path for dotnet and docker
+        DOCKER_CONFIG = "/root/.docker"                 // Docker config path, adjust if needed
     }
 
     stages {
@@ -19,8 +21,8 @@ pipeline {
                 script {
                     // Replace with actual build and test scripts for your code
                     echo "Building and testing the code..."
-                    sh 'dotnet build src/store.sln'
-                    sh 'dotnet test tests/*/*.csproj'
+                    sh '/opt/homebrew/bin/dotnet build src/store.sln'
+                    sh '/opt/homebrew/bin/dotnet test tests/*/*.csproj'
                 }
             }
         }
@@ -89,6 +91,7 @@ pipeline {
     }
 }
 
+// Function to build and push Docker images
 def dockerBuildAndPush(serviceName, dockerfilePath) {
     def imageName = "${env.REGISTRY}/${serviceName}:latest"
     docker.withRegistry('', env.REGISTRY_CREDENTIALS) {
@@ -97,11 +100,12 @@ def dockerBuildAndPush(serviceName, dockerfilePath) {
     }
 }
 
+// Function to deploy using Docker Compose
 def deployMicroservices() {
     echo "Deploying microservices..."
-    // Example: Deploy using Docker Compose or custom deploy script
     sh '''
     docker-compose down
+    docker-compose pull
     docker-compose up -d
     '''
 }
