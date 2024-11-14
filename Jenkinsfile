@@ -19,10 +19,14 @@ pipeline {
         stage('Build and Test') {
             steps {
                 script {
-                    // Replace with actual build and test scripts for your code
+                    // Building the solution
                     echo "Building and testing the code..."
                     sh '/opt/homebrew/bin/dotnet build store.sln'
-                    sh '/opt/homebrew/bin/dotnet test tests/*/*.csproj'
+                    
+                    // Run each test project individually
+                    sh '/opt/homebrew/bin/dotnet test tests/CartMicroservice.UnitTests/CartMicroservice.UnitTests.csproj'
+                    sh '/opt/homebrew/bin/dotnet test tests/CatalogMicroservice.UnitTests/CatalogMicroservice.UnitTests.csproj'
+                    sh '/opt/homebrew/bin/dotnet test tests/IdentityMicroservice.UnitTests/IdentityMicroservice.UnitTests.csproj'
                 }
             }
         }
@@ -91,7 +95,6 @@ pipeline {
     }
 }
 
-// Function to build and push Docker images
 def dockerBuildAndPush(serviceName, dockerfilePath) {
     def imageName = "${env.REGISTRY}/${serviceName}:latest"
     docker.withRegistry('', env.REGISTRY_CREDENTIALS) {
@@ -100,12 +103,11 @@ def dockerBuildAndPush(serviceName, dockerfilePath) {
     }
 }
 
-// Function to deploy using Docker Compose
 def deployMicroservices() {
     echo "Deploying microservices..."
+    // Example: Deploy using Docker Compose or custom deploy script
     sh '''
     docker-compose down
-    docker-compose pull
     docker-compose up -d
     '''
 }
