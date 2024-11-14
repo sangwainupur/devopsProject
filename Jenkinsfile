@@ -21,7 +21,7 @@ pipeline {
                 script {
                     // Replace with actual build and test scripts for your code
                     echo "Building and testing the code..."
-                    sh '/opt/homebrew/bin/dotnet build src/store.sln'
+                    sh '/opt/homebrew/bin/dotnet build store.sln'
                     sh '/opt/homebrew/bin/dotnet test tests/*/*.csproj'
                 }
             }
