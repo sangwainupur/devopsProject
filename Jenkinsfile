@@ -9,6 +9,12 @@ pipeline {
     }
 
     stages {
+        stage('Test Docker and Dotnet') {
+            steps {
+                sh 'docker --version'
+                sh 'dotnet --version'
+            }
+        }
         stage('Checkout') {
             steps {
                 // Pull code from the GitHub repository
