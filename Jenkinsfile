@@ -3,17 +3,19 @@ pipeline {
 
     environment {
         REGISTRY = 'deveshksh'                          // Docker Hub username
-        REGISTRY_CREDENTIALS = 'docker-hub-credentialss' // Docker Hub credentials ID in Jenkins
-        PATH = "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Ensure correct PATH
+        REGISTRY_CREDENTIALS = 'docker-hub-credentials' // Docker Hub credentials ID in Jenkins
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Updated PATH
     }
 
     stages {
-        stage('Test Docker and Dotnet') {
+        stage('Test Environment') {
             steps {
-                sh 'docker --version'
+                sh 'echo $PATH'
+                sh 'which dotnet'
                 sh 'dotnet --version'
             }
         }
+
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/deveshksh/devopsProject.git', branch: 'master', credentialsId: 'github-credentials'
