@@ -100,11 +100,13 @@ pipeline {
 
 def dockerBuildAndPush(serviceName, contextDir) {
     def imageName = "${env.REGISTRY}/${serviceName}:latest"
-    withCredentials([usernamePassword(credentialsId: env.REGISTRY_CREDENTIALS, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-        sh """
+    withCredentials([usernamePassword(credentialsId: env.REGISTRY_CREDENTIALS,
+                                      usernameVariable: 'DOCKER_USERNAME',
+                                      passwordVariable: 'DOCKER_PASSWORD')]) {
+        sh '''#!/bin/bash
         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        docker build -t ${imageName} ${contextDir}
-        docker push ${imageName}
-        """
+        docker build -t '${imageName}' -f '${contextDir}/Dockerfile' .
+        docker push '${imageName}'
+        '''
     }
 }
