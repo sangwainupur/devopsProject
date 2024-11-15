@@ -6,13 +6,13 @@ pipeline {
         REGISTRY_CREDENTIALS = 'docker-hub-credentials' // Docker Hub credentials ID in Jenkins
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Ensure correct path for dotnet and docker
         DOCKER_CONFIG = "/root/.docker"                 // Docker config path, adjust if needed
-        DOCKER_PATH = '/usr/local/bin/docker'           // Explicitly set Docker path
+        // Removed DOCKER_PATH to simplify the configuration
     }
 
     stages {
         stage('Test Docker and Dotnet') {
             steps {
-                sh '${DOCKER_PATH} --version'
+                sh 'docker --version'
                 sh 'dotnet --version'
             }
         }
@@ -28,12 +28,12 @@ pipeline {
                 script {
                     // Building the solution
                     echo "Building and testing the code..."
-                    sh '/opt/homebrew/bin/dotnet build store.sln'
+                    sh 'dotnet build store.sln'
                     
                     // Run each test project individually
-                    sh '/opt/homebrew/bin/dotnet test tests/CartMicroservice.UnitTests/CartMicroservice.UnitTests.csproj'
-                    sh '/opt/homebrew/bin/dotnet test tests/CatalogMicroservice.UnitTests/CatalogMicroservice.UnitTests.csproj'
-                    sh '/opt/homebrew/bin/dotnet test tests/IdentityMicroservice.UnitTests/IdentityMicroservice.UnitTests.csproj'
+                    sh 'dotnet test tests/CartMicroservice.UnitTests/CartMicroservice.UnitTests.csproj'
+                    sh 'dotnet test tests/CatalogMicroservice.UnitTests/CatalogMicroservice.UnitTests.csproj'
+                    sh 'dotnet test tests/IdentityMicroservice.UnitTests/IdentityMicroservice.UnitTests.csproj'
                 }
             }
         }
@@ -42,50 +42,50 @@ pipeline {
             parallel {
                 stage('Catalog Microservice') {
                     steps {
-                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
-                            dockerBuildAndPush('catalog-microservice', 'src/microservices/CatalogMicroservice/Dockerfile')
+                        script {
+                            dockerBuildAndPush('catalog-microservice', 'src/microservices/CatalogMicroservice')
                         }
                     }
                 }
                 stage('Cart Microservice') {
                     steps {
-                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
-                            dockerBuildAndPush('cart-microservice', 'src/microservices/CartMicroservice/Dockerfile')
+                        script {
+                            dockerBuildAndPush('cart-microservice', 'src/microservices/CartMicroservice')
                         }
                     }
                 }
                 stage('Identity Microservice') {
                     steps {
-                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
-                            dockerBuildAndPush('identity-microservice', 'src/microservices/IdentityMicroservice/Dockerfile')
+                        script {
+                            dockerBuildAndPush('identity-microservice', 'src/microservices/IdentityMicroservice')
                         }
                     }
                 }
                 stage('Frontend Gateway') {
                     steps {
-                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
-                            dockerBuildAndPush('frontend-gateway', 'src/gateways/FrontendGateway/Dockerfile')
+                        script {
+                            dockerBuildAndPush('frontend-gateway', 'src/gateways/FrontendGateway')
                         }
                     }
                 }
                 stage('Backend Gateway') {
                     steps {
-                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
-                            dockerBuildAndPush('backend-gateway', 'src/gateways/BackendGateway/Dockerfile')
+                        script {
+                            dockerBuildAndPush('backend-gateway', 'src/gateways/BackendGateway')
                         }
                     }
                 }
                 stage('Frontend') {
                     steps {
-                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
-                            dockerBuildAndPush('frontend-microservice', 'src/uis/Frontend/Dockerfile')
+                        script {
+                            dockerBuildAndPush('frontend-microservice', 'src/uis/Frontend')
                         }
                     }
                 }
                 stage('Backend') {
                     steps {
-                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
-                            dockerBuildAndPush('backend-microservice', 'src/uis/Backend/Dockerfile')
+                        script {
+                            dockerBuildAndPush('backend-microservice', 'src/uis/Backend')
                         }
                     }
                 }
@@ -102,18 +102,29 @@ pipeline {
     }
 }
 
-def dockerBuildAndPush(serviceName, dockerfilePath) {
+def dockerBuildAndPush(serviceName, contextDir) {
     def imageName = "${env.REGISTRY}/${serviceName}:latest"
-    docker.withRegistry('', env.REGISTRY_CREDENTIALS) {
-        def app = docker.build(imageName, "-f ${dockerfilePath} .")
-        app.push()
+    withEnv(["PATH=${env.PATH}"]) {
+        // Diagnostic commands
+        sh 'echo "Current PATH: $PATH"'
+        sh 'which docker'
+        sh 'docker --version'
+        
+        docker.withRegistry('', env.REGISTRY_CREDENTIALS) {
+            // Build the Docker image
+            def app = docker.build(imageName, contextDir)
+            // Push the Docker image to the registry
+            app.push()
+        }
     }
 }
 
 def deployMicroservices() {
     echo "Deploying microservices..."
-    sh '''
-    ${DOCKER_PATH}-compose down
-    ${DOCKER_PATH}-compose up -d
-    '''
+    withEnv(["PATH=${env.PATH}"]) {
+        sh '''
+        docker-compose down
+        docker-compose up -d
+        '''
+    }
 }
