@@ -1,15 +1,10 @@
 pipeline {
     agent any
 
-    tools {
-        dockerTool 'docker' // Ensure 'docker' matches the name in Global Tool Configuration
-    }
-
     environment {
         REGISTRY = 'deveshksh'                          // Docker Hub username
         REGISTRY_CREDENTIALS = 'docker-hub-credentials' // Docker Hub credentials ID in Jenkins
-        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Ensure correct PATH
-        DOCKER_CONFIG = "/root/.docker"                 // Docker config path, adjust if needed
+        PATH = "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Ensure correct PATH
     }
 
     stages {
@@ -91,9 +86,11 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                script {
-                    deployMicroservices()
-                }
+                echo "Deploying microservices..."
+                sh '''
+                docker-compose down
+                docker-compose up -d
+                '''
             }
         }
     }
@@ -101,27 +98,11 @@ pipeline {
 
 def dockerBuildAndPush(serviceName, contextDir) {
     def imageName = "${env.REGISTRY}/${serviceName}:latest"
-    withEnv(["PATH=${env.PATH}"]) {
-        // Diagnostic commands
-        sh 'echo "Current PATH: $PATH"'
-        sh 'which docker'
-        sh 'docker --version'
-        
-        docker.withRegistry('', env.REGISTRY_CREDENTIALS) {
-            // Build the Docker image
-            def app = docker.build(imageName, contextDir)
-            // Push the Docker image to the registry
-            app.push()
-        }
-    }
-}
-
-def deployMicroservices() {
-    echo "Deploying microservices..."
-    withEnv(["PATH=${env.PATH}"]) {
-        sh '''
-        docker-compose down
-        docker-compose up -d
-        '''
+    withCredentials([usernamePassword(credentialsId: env.REGISTRY_CREDENTIALS, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+        sh """
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        docker build -t ${imageName} ${contextDir}
+        docker push ${imageName}
+        """
     }
 }
