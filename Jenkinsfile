@@ -2,15 +2,14 @@ pipeline {
     agent any
 
     tools {
-    docker 'docker' // Name matches the one set in Global Tool Configuration
+        dockerTool 'docker' // Ensure 'docker' matches the name in Global Tool Configuration
     }
 
     environment {
         REGISTRY = 'deveshksh'                          // Docker Hub username
         REGISTRY_CREDENTIALS = 'docker-hub-credentials' // Docker Hub credentials ID in Jenkins
-        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Ensure correct path for dotnet and docker
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Ensure correct PATH
         DOCKER_CONFIG = "/root/.docker"                 // Docker config path, adjust if needed
-        // Removed DOCKER_PATH to simplify the configuration
     }
 
     stages {
@@ -22,23 +21,17 @@ pipeline {
         }
         stage('Checkout') {
             steps {
-                // Pull code from the GitHub repository
-                git url: 'https://github.com/deveshksh/devopsProject.git', branch: 'master'
+                git url: 'https://github.com/deveshksh/devopsProject.git', branch: 'master', credentialsId: 'github-credentials'
             }
         }
 
         stage('Build and Test') {
             steps {
-                script {
-                    // Building the solution
-                    echo "Building and testing the code..."
-                    sh 'dotnet build store.sln'
-                    
-                    // Run each test project individually
-                    sh 'dotnet test tests/CartMicroservice.UnitTests/CartMicroservice.UnitTests.csproj'
-                    sh 'dotnet test tests/CatalogMicroservice.UnitTests/CatalogMicroservice.UnitTests.csproj'
-                    sh 'dotnet test tests/IdentityMicroservice.UnitTests/IdentityMicroservice.UnitTests.csproj'
-                }
+                echo "Building and testing the code..."
+                sh 'dotnet build store.sln'
+                sh 'dotnet test tests/CartMicroservice.UnitTests/CartMicroservice.UnitTests.csproj'
+                sh 'dotnet test tests/CatalogMicroservice.UnitTests/CatalogMicroservice.UnitTests.csproj'
+                sh 'dotnet test tests/IdentityMicroservice.UnitTests/IdentityMicroservice.UnitTests.csproj'
             }
         }
 
