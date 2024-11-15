@@ -3,15 +3,16 @@ pipeline {
 
     environment {
         REGISTRY = 'deveshksh'                          // Docker Hub username
-        REGISTRY_CREDENTIALS = 'docker-hub-credentialss' // Docker Hub credentials ID in Jenkins
+        REGISTRY_CREDENTIALS = 'docker-hub-credentials' // Docker Hub credentials ID in Jenkins
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Ensure correct path for dotnet and docker
         DOCKER_CONFIG = "/root/.docker"                 // Docker config path, adjust if needed
+        DOCKER_PATH = '/usr/local/bin/docker'           // Explicitly set Docker path
     }
 
     stages {
         stage('Test Docker and Dotnet') {
             steps {
-                sh 'docker --version'
+                sh '${DOCKER_PATH} --version'
                 sh 'dotnet --version'
             }
         }
@@ -41,49 +42,49 @@ pipeline {
             parallel {
                 stage('Catalog Microservice') {
                     steps {
-                        script {
+                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
                             dockerBuildAndPush('catalog-microservice', 'src/microservices/CatalogMicroservice/Dockerfile')
                         }
                     }
                 }
                 stage('Cart Microservice') {
                     steps {
-                        script {
+                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
                             dockerBuildAndPush('cart-microservice', 'src/microservices/CartMicroservice/Dockerfile')
                         }
                     }
                 }
                 stage('Identity Microservice') {
                     steps {
-                        script {
+                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
                             dockerBuildAndPush('identity-microservice', 'src/microservices/IdentityMicroservice/Dockerfile')
                         }
                     }
                 }
                 stage('Frontend Gateway') {
                     steps {
-                        script {
+                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
                             dockerBuildAndPush('frontend-gateway', 'src/gateways/FrontendGateway/Dockerfile')
                         }
                     }
                 }
                 stage('Backend Gateway') {
                     steps {
-                        script {
+                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
                             dockerBuildAndPush('backend-gateway', 'src/gateways/BackendGateway/Dockerfile')
                         }
                     }
                 }
                 stage('Frontend') {
                     steps {
-                        script {
+                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
                             dockerBuildAndPush('frontend-microservice', 'src/uis/Frontend/Dockerfile')
                         }
                     }
                 }
                 stage('Backend') {
                     steps {
-                        script {
+                        withEnv(["DOCKER_PATH=${DOCKER_PATH}"]) {
                             dockerBuildAndPush('backend-microservice', 'src/uis/Backend/Dockerfile')
                         }
                     }
@@ -111,9 +112,8 @@ def dockerBuildAndPush(serviceName, dockerfilePath) {
 
 def deployMicroservices() {
     echo "Deploying microservices..."
-    // Example: Deploy using Docker Compose or custom deploy script
     sh '''
-    docker-compose down
-    docker-compose up -d
+    ${DOCKER_PATH}-compose down
+    ${DOCKER_PATH}-compose up -d
     '''
 }
