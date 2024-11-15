@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+    docker 'docker' // Name matches the one set in Global Tool Configuration
+    }
+
     environment {
         REGISTRY = 'deveshksh'                          // Docker Hub username
         REGISTRY_CREDENTIALS = 'docker-hub-credentials' // Docker Hub credentials ID in Jenkins
