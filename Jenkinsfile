@@ -4,8 +4,9 @@ pipeline {
     environment {
         REGISTRY = 'deveshksh'                          // Docker Hub username
         REGISTRY_CREDENTIALS = 'docker-hub-credentials' // Docker Hub credentials ID in Jenkins
-        PATH = "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin" // Add docker and dotnet paths here
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Ensure correct path for dotnet and docker
         DOCKER_CONFIG = "/root/.docker"                 // Docker config path, adjust if needed
+        DOCKER_PATH = '/usr/local/bin/docker'           // Explicitly set Docker path
     }
 
     stages {
