@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY = 'deveshksh'                          // Docker Hub username
+        REGISTRY = 'nupursangwai'                          // Docker Hub username
         REGISTRY_CREDENTIALS = 'docker-hub-credentials' // Docker Hub credentials ID in Jenkins
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"  // Updated PATH
     }
@@ -18,7 +18,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/deveshksh/devopsProject.git', branch: 'master', credentialsId: 'github-credentials'
+                git url: 'https://github.com/sangwainupur/devopsProject.git', branch: 'master', credentialsId: 'github-credentials'
             }
         }
 
