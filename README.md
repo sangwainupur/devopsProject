@@ -90,7 +90,7 @@ Here's a breakdown of some best practices:
 
 There are three microservices:
 
-*   **Catalog microservice**: allows to manage the catalog.
+*   **Catalog microservice**: allows the catalog to be managed.
 *   **Cart microservice**: allows to manage the cart.
 *   **Identity microservice**: allows to manage authentication and users.
 
@@ -284,7 +284,7 @@ public class CatalogController(ICatalogRepository catalogRepository) : Controlle
 
 ```
 
-`ICatalogRepository` is added using dependency injection in _Startup.cs_ in order to make the microservice testable:
+`ICatalogRepository` is added using dependency injection in _Startup.cs_ to make the microservice testable:
 
 ```csharp
 
